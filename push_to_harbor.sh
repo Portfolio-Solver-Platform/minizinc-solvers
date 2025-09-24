@@ -10,8 +10,6 @@ docker login $HARBOR_URL -u admin -p admin
 
 docker build -t minizinc-solver:latest .
 docker tag minizinc-solver:latest $HARBOR_URL/psp/minizinc-solver:latest
-# docker push $HARBOR_URL/psp/minizinc-solver:latest
-
 PUSH_OUT="$(docker push "$REF:latest" 2>&1 | tee /dev/stderr)"
 DIGEST="$(printf "%s\n" "$PUSH_OUT" | awk '/digest:/ {print $3}')"
 
