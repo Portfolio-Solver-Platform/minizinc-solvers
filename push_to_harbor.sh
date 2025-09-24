@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 HARBOR_URL="${HARBOR_URL:-harbor.local}"
 export COSIGN_PASSWORD="lol" # Disclaimer only used for local testing
 META="$(mktemp)"
