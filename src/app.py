@@ -56,7 +56,7 @@ def solve_from_file(solver: str, path: str):
 
 
 if __name__ == "__main__":
-    solve_from_file("gecode", "../problems/nfc")
+    solve_from_file("coinbc", "../problems/nfc")
 
 
 def main():
