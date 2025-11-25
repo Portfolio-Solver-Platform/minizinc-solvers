@@ -6,12 +6,27 @@ import logging
 import pika
 from pprint import pprint
 from minizinc import Status, Solver, Result
+import datetime
+from dataclasses import dataclass
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def solve(solver: str, problem: str, instance: str) -> Result:
+@dataclass
+class SatSolution:
+    solution: str
+    solve_time: datetime.timedelta
+
+
+@dataclass
+class SatError:
+    error_message: str
+
+
+def solve(
+    solver: str, problem: str, instance: str, vcpus: int
+) -> SatSolution | SatError:
     """
     Solver examples: coinbc, gecode
     """
@@ -33,7 +48,14 @@ def solve(solver: str, problem: str, instance: str) -> Result:
     instance = minizinc.Instance(solver, model)
 
     print("Solving...")
-    return instance.solve()
+    result = instance.solve(processes=vcpus)
+
+    if result.status == Status.Error:
+        return SatError("Failed to solve")
+    elif result.status != Status.OPTIMAL_SOLUTION:
+        return SatError("Solution is not optimal")
+
+    return SatSolution(str(result.solution), result.statistics["solveTime"])
 
 
 def problem_instances_from_file(path: str) -> tuple[str, list[str]]:
@@ -44,7 +66,7 @@ def problem_instances_from_file(path: str) -> tuple[str, list[str]]:
 
 
 def print_result(result: Result) -> None:
-    # pprint(result, depth=None, width=80)
+    pprint(result, depth=None, width=80)
     status = result.status
     status_str = None
     if status == Status.ERROR or status == Status.UNKNOWN:
