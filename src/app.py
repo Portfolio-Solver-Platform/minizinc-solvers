@@ -4,17 +4,19 @@ import minizinc
 import pprint
 import logging
 import pika
+from pprint import pprint
+from minizinc import Status, Solver, Result
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def solve(solver: str, problem: str, instance: str):
+def solve(solver: str, problem: str, instance: str) -> Result:
     """
     Solver examples: coinbc, gecode
     """
     try:
-        solver = minizinc.Solver.lookup(solver)
+        solver = Solver.lookup(solver)
     except Exception as e:
         print(
             "Failed to find solver. Make sure minizinc is installed on the system, and the solver name is correct."
@@ -31,32 +33,52 @@ def solve(solver: str, problem: str, instance: str):
     instance = minizinc.Instance(solver, model)
 
     print("Solving...")
-    result = instance.solve()
-    pprint.pprint(result, depth=None, width=80)
-    print("Status:", result.status)
-    if result.solution is not None:
-        print(result.solution)
-        print()
-        print()
-        print(dict(result))
-        print()
-        print()
-        if result.objective is not None:
-            print("Objective:", result.objective)
-    else:
-        print("No solution found.")
+    return instance.solve()
 
 
-def solve_from_file(solver: str, path: str):
-    instances = glob.glob(f"{path}/*.dzn")
+def problem_instances_from_file(path: str) -> tuple[str, list[str]]:
     problem = glob.glob(f"{path}/*.mzn")[0]
+    instances = glob.glob(f"{path}/*.dzn")
     print(f"loaded {len(instances)} instances")
-    for instance in instances:
-        solve(solver, problem, instance)
+    return problem, instances
+
+
+def print_result(result: Result) -> None:
+    # pprint(result, depth=None, width=80)
+    status = result.status
+    status_str = None
+    if status == Status.ERROR or status == Status.UNKNOWN:
+        status_str = "error"
+        print(f"Status: {status_str}")
+        return
+    elif status == Status.UNBOUNDED:
+        status_str = "unbounded"
+        print(f"Status: {status_str}")
+        return
+    elif status == Status.UNSATISFIABLE:
+        status_str = "unsatisfiable"
+        print(f"Status: {status_str}")
+        return
+
+    if status == Status.OPTIMAL_SOLUTION:
+        status_str = "optimal"
+    elif status == Status.SATISFIED:
+        status_str = "satisfied"
+    elif status == Status.ALL_SOLUTIONS:
+        status_str = "all solutions"
+
+    print("Status:", status_str)
+    print("Solve time:", result.statistics["solveTime"])
+    print("Total time:", result.statistics["time"])
+    print("Solution:")
+    print(result.solution)
 
 
 if __name__ == "__main__":
-    solve_from_file("coinbc", "../problems/nfc")
+    problem, instances = problem_instances_from_file("../problems/nfc")
+    result = solve("coinbc", problem, instances[0])
+    print()
+    print_result(result)
 
 
 def main():
