@@ -1,4 +1,4 @@
-from .sat import SatSolution, SatError, SatRequest
+from psp_solver_sdk.sat import SatSolution, SatError, SatRequest
 from minizinc import Status, Result, Model, Instance, Solver
 from pprint import pprint
 

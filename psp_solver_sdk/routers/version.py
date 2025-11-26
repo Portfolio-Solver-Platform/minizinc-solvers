@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from src.config import Config
+from psp_solver_sdk.config import Config
 from pydantic import BaseModel, Field
 
 router = APIRouter()

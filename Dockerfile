@@ -8,6 +8,7 @@ RUN mkdir -p /etc/nix && echo "experimental-features = nix-command flakes" >> /e
 COPY problems ./problems
 COPY flake.nix flake.lock pyproject.toml uv.lock ./
 COPY src ./src
+COPY ./psp_solver_sdk ./psp_solver_sdk
 
 EXPOSE 8080
 
