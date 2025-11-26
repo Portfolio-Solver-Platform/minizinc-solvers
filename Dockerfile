@@ -1,31 +1,14 @@
-FROM python:3.13-slim AS base
+FROM nixos/nix:latest
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 
+WORKDIR /app
 
-RUN useradd -u 10001 -m appuser
+# Enable experimental features for Nix
+RUN mkdir -p /etc/nix && echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
 
-WORKDIR /home/appuser/app
+COPY problems ./problems
+COPY flake.nix flake.lock pyproject.toml uv.lock ./
+COPY src ./src
 
-COPY requirements.txt .
-COPY requirements-dev.txt .
-
-USER 10001
-ENV PATH="/home/appuser/.local/bin:${PATH}"
-
-
-FROM base AS dev
-RUN pip install --no-cache-dir --user -r requirements-dev.txt
-COPY pyproject.toml .
-COPY src/ ./src/
-COPY tests/ ./tests/
 EXPOSE 8080
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "4", "src.app:app"]
 
-
-FROM base AS runtime
-RUN pip install --no-cache-dir --user -r requirements.txt
-COPY pyproject.toml .
-COPY src/ ./src/
-EXPOSE 8080
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "4", "src.app:app"]
+CMD ["nix", "develop", "-c", "gunicorn", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8080", "--workers", "4", "src.main:app"]
