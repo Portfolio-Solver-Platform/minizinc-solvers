@@ -1,7 +1,8 @@
 import asyncio
-from typing import Callable
+from typing import Callable, Awaitable
 from fastapi import FastAPI
 from dataclasses import dataclass
+from .queue import QueueMessageProcessor
 import datetime
 from glob import glob
 
@@ -37,19 +38,30 @@ class SatError:
     error_message: str
 
 
+def _request_from_dict(data: dict) -> SatRequest:
+    pass
+
+
+def _result_from_dict(result: SatSolution | SatError) -> dict:
+    pass
+
+
 def sat_solver(
     name: str,
-    solve: Callable[[SatRequest], SatSolution | SatError],
+    solve: Callable[[SatRequest], Awaitable[SatSolution | SatError]],
     config: SolverConfig = SolverConfig(),
 ) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        problem, instances = problem_instances_from_file("./problems/nfc")
-        request = SatRequest("coinbc", problem, instances[0], 1)
-
         async def task():
-            await solve(request)
+            async def process(data: dict) -> dict:
+                request = _request_from_dict(data)
+                result = await solve(request)
+                return _result_from_dict(result)
+
+            queue_processor = QueueMessageProcessor(config.queue)
+            await queue_processor.json_process_loop(process)
 
         asyncio.create_task(task())
         yield
