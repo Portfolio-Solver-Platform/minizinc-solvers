@@ -3,10 +3,10 @@ from typing import Callable, Awaitable
 import aio_pika
 import json
 
-QueueConnection = aio_pika.abc.AbstractRobustConnection
 
-
-async def get_connection(auth: QueueAuthConfig) -> QueueConnection:
+async def get_connection(
+    auth: QueueAuthConfig,
+) -> aio_pika.abc.AbstractRobustConnection:
     return await aio_pika.connect_robust(
         host=auth.host,
         port=auth.port,
