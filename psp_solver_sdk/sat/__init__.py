@@ -2,12 +2,13 @@ import asyncio
 from typing import Callable, Awaitable
 from fastapi import FastAPI
 from dataclasses import dataclass
-from .queue import QueueMessageProcessor
+from ..queue import QueueMessageProcessor
 import datetime
 from glob import glob
+from .process import sat_process
 
-from .config import SolverConfig
-from .routers import health, version
+from ..config import SolverConfig
+from ..routers import health, version
 import prometheus_fastapi_instrumentator
 from contextlib import asynccontextmanager
 
@@ -38,10 +39,6 @@ class SatError:
     error_message: str
 
 
-def _request_from_dict(data: dict) -> SatRequest:
-    pass
-
-
 def _result_from_dict(result: SatSolution | SatError) -> dict:
     pass
 
@@ -56,9 +53,7 @@ def sat_solver(
     async def lifespan(app: FastAPI):
         async def task():
             async def process(data: dict) -> dict:
-                request = _request_from_dict(data)
-                result = await solve(request)
-                return _result_from_dict(result)
+                await sat_process(data, solve)
 
             queue_processor = QueueMessageProcessor(config.queue)
             await queue_processor.json_process_loop(process)
