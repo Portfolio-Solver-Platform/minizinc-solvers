@@ -11,4 +11,4 @@ COPY src ./src
 
 EXPOSE 8080
 
-CMD ["nix", "develop", "-c", "gunicorn", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8080", "--workers", "4", "src.main:app"]
+CMD ["nix", "develop", ".#prod", "-c", "gunicorn", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8080", "--workers", "4", "src.main:app"]

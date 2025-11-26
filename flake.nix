@@ -16,27 +16,34 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+          mkDevShell =
+            { extraUvFlags }:
+            pkgs.mkShell {
+              packages = [
+                pkgs.python3
+                pkgs.uv
+                pkgs.minizinc
+              ];
+
+              env = lib.optionalAttrs pkgs.stdenv.isLinux {
+                # Python libraries often load native shared objects using dlopen(3).
+                # Setting LD_LIBRARY_PATH makes the dynamic library loader aware of libraries without using RPATH for lookup.
+                LD_LIBRARY_PATH = lib.makeLibraryPath pkgs.pythonManylinuxPackages.manylinux1;
+              };
+
+              shellHook = ''
+                unset PYTHONPATH
+                uv sync ${extraUvFlags}
+                . .venv/bin/activate
+              '';
+            };
+          developmentShell = mkDevShell { extraUvFlags = ""; };
+          productionShell = mkDevShell { extraUvFlags = "--no-dev"; };
         in
         {
-          default = pkgs.mkShell {
-            packages = [
-              pkgs.python3
-              pkgs.uv
-              pkgs.minizinc
-            ];
-
-            env = lib.optionalAttrs pkgs.stdenv.isLinux {
-              # Python libraries often load native shared objects using dlopen(3).
-              # Setting LD_LIBRARY_PATH makes the dynamic library loader aware of libraries without using RPATH for lookup.
-              LD_LIBRARY_PATH = lib.makeLibraryPath pkgs.pythonManylinuxPackages.manylinux1;
-            };
-
-            shellHook = ''
-              unset PYTHONPATH
-              uv sync
-              . .venv/bin/activate
-            '';
-          };
+          default = developmentShell;
+          dev = developmentShell;
+          prod = productionShell;
         }
       );
     };
