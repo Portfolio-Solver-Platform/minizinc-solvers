@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import datetime
 from glob import glob
 
-from .config import Config
+from .config import SolverConfig
 from .routers import health, version
 import prometheus_fastapi_instrumentator
 from contextlib import asynccontextmanager
@@ -40,6 +40,7 @@ class SatError:
 def sat_solver(
     name: str,
     solve: Callable[[SatRequest], SatSolution | SatError],
+    config: SolverConfig = SolverConfig(),
 ) -> FastAPI:
 
     @asynccontextmanager
@@ -54,16 +55,16 @@ def sat_solver(
         yield
 
     app = FastAPI(
-        debug=Config.App.DEBUG,
-        root_path=Config.Api.ROOT_PATH,
-        title=f"{Config.Api.TITLE}: {name}",
-        description=Config.Api.DESCRIPTION,
-        version=Config.App.VERSION,
+        debug=config.debug,
+        root_path=config.api.root_path,
+        title=f"{config.api.title_prefix}{name}",
+        description=config.api.description,
+        version=config.service.version,
         lifespan=lifespan,
     )
 
     app.include_router(health.router, tags=["Health"])
-    app.include_router(version.router, tags=["Info"])
+    app.include_router(version.router(config), tags=["Info"])
 
     # Monitoring
     prometheus_fastapi_instrumentator.Instrumentator().instrument(app).expose(app)

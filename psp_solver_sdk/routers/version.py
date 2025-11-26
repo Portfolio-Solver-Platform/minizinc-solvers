@@ -1,8 +1,6 @@
 from fastapi import APIRouter
-from psp_solver_sdk.config import Config
+from psp_solver_sdk.config import SolverConfig
 from pydantic import BaseModel, Field
-
-router = APIRouter()
 
 
 class VersionResponse(BaseModel):
@@ -15,17 +13,22 @@ class VersionResponse(BaseModel):
     )
 
 
-@router.get(
-    "/version",
-    response_model=VersionResponse,
-    summary="Get information about the service",
-)
-def version():
-    """
-    Get information about the service.
-    """
-    return VersionResponse(
-        service=Config.App.NAME,
-        version=Config.App.VERSION,
-        api_version=Config.Api.VERSION,
+def router(config: SolverConfig) -> APIRouter:
+    router = APIRouter()
+
+    @router.get(
+        "/version",
+        response_model=VersionResponse,
+        summary="Get information about the service",
     )
+    def version():
+        """
+        Get information about the service.
+        """
+        return VersionResponse(
+            service=config.service.name,
+            version=config.service.version,
+            api_version=config.api.version,
+        )
+
+    return router
