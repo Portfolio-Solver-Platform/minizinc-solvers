@@ -4,11 +4,17 @@ from fastapi.testclient import TestClient
 from psp_solver_sdk.sat import sat_solver
 from psp_solver_sdk.queue import QueueMessageProcessor
 import json
+from tests.mocks import mock_process_loop
 
 
 @pytest.fixture
 def sat_app(mock_env, monkeypatch) -> FastAPI:
-    yield sat_solver("MiniZinc", solve)
+    def do_nothing(*args, **kwargs):
+        pass
+
+    # Do no checks
+    mock_process_loop(monkeypatch, [], do_nothing)
+    yield sat_solver("MiniZinc", do_nothing)
 
 
 @pytest.fixture

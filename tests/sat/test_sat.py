@@ -5,7 +5,6 @@ from tests.mocks import mock_process_loop
 from tests.sat.mocks import mock_get_request_content, load_file
 from psp_solver_sdk.config import SolverConfig
 from psp_solver_sdk.sat import SatRequest, SatSolution, SatError
-from psp_solver_sdk.sat.response import SatSolutionResponse, SatErrorResponse
 
 
 async def test_solve(monkeypatch, mock_env):
