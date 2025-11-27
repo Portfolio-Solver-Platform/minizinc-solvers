@@ -26,6 +26,7 @@ async def solve(request: SatRequest) -> SatSolution | SatError:
 
     print("Solving...")
     result = await instance.solve_async(processes=request.vcpus)
+    print_result(result)
 
     if result.status == Status.ERROR:
         return SatError("Failed to solve")

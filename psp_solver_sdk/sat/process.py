@@ -8,6 +8,7 @@ from .response import (
 )
 from ..config import SolverConfig
 import httpx
+import tempfile
 
 
 async def _make_get_request(url: str) -> httpx.Response:
@@ -27,11 +28,26 @@ async def sat_process(
     config: SolverConfig,
 ) -> dict:
     request = SolverRequest.from_dict(data)
-    problem = await _get_text_from_url(request.problem_url)
-    instance = await _get_text_from_url(request.instance_url)
-    result = await solve(
-        SatRequest(request.solver_name, problem, instance, config.cpu.limit)
-    )
+    problem_bytes = await _get_text_from_url(request.problem_url)
+    instance_bytes = await _get_text_from_url(request.instance_url)
+    with tempfile.NamedTemporaryFile(
+        mode="w+", prefix="problem_", suffix=".mzn", delete=True
+    ) as problem_file:
+        problem_file.write(problem_bytes)
+        problem_file.flush()
+        with tempfile.NamedTemporaryFile(
+            mode="w+", prefix="instance_", suffix=".dzn", delete=True
+        ) as instance_file:
+            instance_file.write(instance_bytes)
+            instance_file.flush()
+            result = await solve(
+                SatRequest(
+                    request.solver_name,
+                    problem_file.name,
+                    instance_file.name,
+                    config.cpu.limit,
+                )
+            )
 
     response = SatResponse(
         result.solve_time,
@@ -41,8 +57,10 @@ async def sat_process(
         request.instance_id,
         None,
     )
-    if result is SatSolution:
+    if type(result) is SatSolution:
         response.result = SatSolutionResponse(str(result.solution))
-    else:
+    elif type(result) is SatError:
         response.result = SatErrorResponse(result.error_message)
+    else:
+        raise ValueError(f"Unknown result type: {type(result)}")
     return response.to_dict()

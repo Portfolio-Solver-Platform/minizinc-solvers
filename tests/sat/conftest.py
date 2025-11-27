@@ -6,6 +6,7 @@ from src.minizinc import solve
 from psp_solver_sdk.queue import QueueMessageProcessor
 import json
 from tests.mocks import mock_process_loop
+from tests.sat.mocks import mock_get_request_content, load_file
 
 
 @pytest.fixture
@@ -19,8 +20,13 @@ def sat_app(mock_env, monkeypatch) -> FastAPI:
         "instance_url": "instance_url",
     }
     input_bytes = json.dumps(input_dict).encode()
+    file_contents = {
+        "problem_url": load_file("tests/sat/fixtures/problem"),
+        "instance_url": load_file("tests/sat/fixtures/instance"),
+    }
 
     mock_process_loop(monkeypatch, [input_bytes])
+    mock_get_request_content(monkeypatch, file_contents)
     yield sat_solver("MiniZinc", solve)
 
 
@@ -34,7 +40,7 @@ def sat_client(sat_app):
 @pytest.fixture
 def mock_env(monkeypatch):
     values = {
-        "CPU_LIMIT": "2",
+        "CPU_LIMIT": "1",
         "QUEUE_IN_NAME": "inqueue",
         "QUEUE_OUT_NAME": "outqueue",
         "QUEUE_HOST": "queuehost",
