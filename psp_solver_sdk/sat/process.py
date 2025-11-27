@@ -1,11 +1,10 @@
 from psp_solver_sdk.core import SolverRequest
-from psp_solver_sdk.sat import SatSolution, SatError, SatRequest
+from .results import SatSolution, SatError, SatRequest
 from typing import Awaitable, Callable
 from .response import (
     SatResponse,
     SatErrorResponse,
     SatSolutionResponse,
-    RESPONSE_VERSION,
 )
 from ..config import SolverConfig
 
@@ -19,7 +18,6 @@ async def sat_process(
     result = await solve(request)
 
     response = SatResponse(
-        RESPONSE_VERSION,
         result.solve_time,
         request.solver_id,
         config.cpu.limit,
@@ -28,7 +26,7 @@ async def sat_process(
         None,
     )
     if result is SatSolution:
-        response.result = SatSolutionResponse(solution=str(result.solution))
+        response.result = SatSolutionResponse(str(result.solution))
     else:
-        response.result = SatErrorResponse(error_message=result.error_message)
+        response.result = SatErrorResponse(result.error_message)
     return response.to_dict()

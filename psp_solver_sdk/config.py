@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass, field
+from typing import Callable
 
 
 def _env(name: str, default: str | None = None) -> str:
@@ -13,24 +14,33 @@ def _env(name: str, default: str | None = None) -> str:
         ) from e
 
 
+def _env_field[T](
+    name: str, default: T | None = None, process: Callable[[str], T] | None = None
+) -> T:
+    str_default = str(default) if default is not None else None
+    if process is None:
+        process = lambda x: x
+    return field(default_factory=lambda: process(_env(name, str_default)))
+
+
 @dataclass
 class CpuConfig:
-    limit: int = int(_env("CPU_LIMIT"))
+    limit: int = _env_field("CPU_LIMIT")
 
 
 @dataclass
 class QueueAuthConfig:
-    host: str = _env("QUEUE_HOST")
-    port: int = _env("QUEUE_PORT")
-    user: str = _env("QUEUE_USER")
-    password: str = _env("QUEUE_PASSWORD")
+    host: str = _env_field("QUEUE_HOST")
+    port: int = _env_field("QUEUE_PORT", process=int)
+    user: str = _env_field("QUEUE_USER")
+    password: str = _env_field("QUEUE_PASSWORD")
 
 
 @dataclass
 class QueueConfig:
     request_timeout: tuple[int, int] = (1, 5)
-    in_name: str = _env("QUEUE_IN_NAME")
-    out_name: str = _env("QUEUE_OUT_NAME")
+    in_name: str = _env_field("QUEUE_IN_NAME")
+    out_name: str = _env_field("QUEUE_OUT_NAME")
 
     auth: QueueAuthConfig = field(default_factory=QueueAuthConfig)
 
@@ -51,7 +61,7 @@ class ApiConfig:
 
 @dataclass
 class SolverConfig:
-    debug: str = _env("DEBUG", "false").lower() == "true"
+    debug: str = _env_field("DEBUG", False, process=lambda s: s.lower() == "true")
     service: ServiceConfig = field(default_factory=ServiceConfig)
     api: ApiConfig = field(default_factory=ApiConfig)
     cpu: CpuConfig = field(default_factory=CpuConfig)
