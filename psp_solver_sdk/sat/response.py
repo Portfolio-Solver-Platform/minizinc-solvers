@@ -4,6 +4,7 @@ from dataclasses import dataclass, asdict
 @dataclass
 class SatSolutionResponse:
     solution: str
+    solve_time: float
     kind: str = "optimal"
 
     def to_dict(self) -> dict:
@@ -24,7 +25,6 @@ RESPONSE_VERSION: int = 1
 
 @dataclass
 class SatResponse:
-    solve_time: float
     solver_id: int
     vcpus: int
     problem_id: int

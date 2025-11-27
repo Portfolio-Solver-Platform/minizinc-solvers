@@ -50,7 +50,6 @@ async def sat_process(
             )
 
     response = SatResponse(
-        result.solve_time.total_seconds(),
         request.solver_id,
         config.cpu.limit,
         request.problem_id,
@@ -58,7 +57,9 @@ async def sat_process(
         None,
     )
     if type(result) is SatSolution:
-        response.result = SatSolutionResponse(str(result.solution))
+        response.result = SatSolutionResponse(
+            str(result.solution), result.solve_time.total_seconds()
+        )
     elif type(result) is SatError:
         response.result = SatErrorResponse(result.error_message)
     else:

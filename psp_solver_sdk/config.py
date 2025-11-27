@@ -28,7 +28,7 @@ def _env_field[T](
 
 @dataclass
 class CpuConfig:
-    limit: int = _env_field("CPU_LIMIT")
+    limit: int = _env_field("CPU_LIMIT", process=int)
 
 
 @dataclass
