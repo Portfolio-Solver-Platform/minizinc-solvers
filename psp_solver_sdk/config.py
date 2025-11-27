@@ -15,12 +15,15 @@ def _env(name: str, default: str | None = None) -> str:
 
 
 def _env_field[T](
-    name: str, default: T | None = None, process: Callable[[str], T] | None = None
+    name: str, default: str | None = None, process: Callable[[str], T] | None = None
 ) -> T:
-    str_default = str(default) if default is not None else None
+    def default_process(x: str) -> str:
+        return x
+
     if process is None:
-        process = lambda x: x
-    return field(default_factory=lambda: process(_env(name, str_default)))
+        process = default_process
+
+    return field(default_factory=lambda: process(_env(name, default)))
 
 
 @dataclass
@@ -61,7 +64,7 @@ class ApiConfig:
 
 @dataclass
 class SolverConfig:
-    debug: str = _env_field("DEBUG", False, process=lambda s: s.lower() == "true")
+    debug: str = _env_field("DEBUG", "false", process=lambda s: s.lower() == "true")
     service: ServiceConfig = field(default_factory=ServiceConfig)
     api: ApiConfig = field(default_factory=ApiConfig)
     cpu: CpuConfig = field(default_factory=CpuConfig)

@@ -7,6 +7,18 @@ from .response import (
     SatSolutionResponse,
 )
 from ..config import SolverConfig
+import httpx
+
+
+async def _make_get_request(url: str) -> httpx.Response:
+    timeout = httpx.Timeout(10.0, connect=5.0)
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        return await client.get(url)
+
+
+async def _get_text_from_url(url: str) -> str:
+    response = await _make_get_request(url)
+    return response.text
 
 
 async def sat_process(
@@ -15,7 +27,11 @@ async def sat_process(
     config: SolverConfig,
 ) -> dict:
     request = SolverRequest.from_dict(data)
-    result = await solve(request)
+    problem = await _get_text_from_url(request.problem_url)
+    instance = await _get_text_from_url(request.instance_url)
+    result = await solve(
+        SatRequest(request.solver_name, problem, instance, config.cpu.limit)
+    )
 
     response = SatResponse(
         result.solve_time,

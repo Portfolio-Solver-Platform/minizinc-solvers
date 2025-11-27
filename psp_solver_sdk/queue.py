@@ -1,5 +1,6 @@
 from .config import QueueConfig, QueueAuthConfig
 from typing import Callable, Awaitable
+from dataclasses import dataclass
 import aio_pika
 import json
 
@@ -15,6 +16,7 @@ async def get_connection(
     )
 
 
+@dataclass
 class QueueMessageProcessor:
     config: QueueConfig
 

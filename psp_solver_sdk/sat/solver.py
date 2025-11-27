@@ -23,7 +23,7 @@ def sat_solver(
     async def lifespan(app: FastAPI):
         async def task():
             async def process(data: dict) -> dict:
-                await sat_process(data, solve)
+                await sat_process(data, solve, config)
 
             queue_processor = QueueMessageProcessor(config.queue)
             await queue_processor.json_process_loop(process)
