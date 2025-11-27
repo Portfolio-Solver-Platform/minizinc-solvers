@@ -11,6 +11,17 @@ import prometheus_fastapi_instrumentator
 from contextlib import asynccontextmanager
 
 
+async def _solve_loop(
+    solve: Callable[[SatRequest], Awaitable[SatSolution | SatError]],
+    config: SolverConfig | None = None,
+):
+    async def process(data: dict) -> dict:
+        return await sat_process(data, solve, config)
+
+    queue_processor = QueueMessageProcessor(config.queue)
+    await queue_processor.json_process_loop(process)
+
+
 def sat_solver(
     name: str,
     solve: Callable[[SatRequest], Awaitable[SatSolution | SatError]],
@@ -22,11 +33,7 @@ def sat_solver(
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         async def task():
-            async def process(data: dict) -> dict:
-                await sat_process(data, solve, config)
-
-            queue_processor = QueueMessageProcessor(config.queue)
-            await queue_processor.json_process_loop(process)
+            await _solve_loop(solve, config)
 
         asyncio.create_task(task())
         yield

@@ -2,31 +2,12 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from psp_solver_sdk.sat import sat_solver
-from src.minizinc import solve
 from psp_solver_sdk.queue import QueueMessageProcessor
 import json
-from tests.mocks import mock_process_loop
-from tests.sat.mocks import mock_get_request_content, load_file
 
 
 @pytest.fixture
 def sat_app(mock_env, monkeypatch) -> FastAPI:
-    input_dict = {
-        "solver_id": 2,
-        "solver_name": "coinbc",
-        "problem_id": 3,
-        "instance_id": 4,
-        "problem_url": "problem_url",
-        "instance_url": "instance_url",
-    }
-    input_bytes = json.dumps(input_dict).encode()
-    file_contents = {
-        "problem_url": load_file("tests/sat/fixtures/problem"),
-        "instance_url": load_file("tests/sat/fixtures/instance"),
-    }
-
-    mock_process_loop(monkeypatch, [input_bytes])
-    mock_get_request_content(monkeypatch, file_contents)
     yield sat_solver("MiniZinc", solve)
 
 

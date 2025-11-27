@@ -50,7 +50,7 @@ async def sat_process(
             )
 
     response = SatResponse(
-        result.solve_time,
+        result.solve_time.total_seconds(),
         request.solver_id,
         config.cpu.limit,
         request.problem_id,
@@ -63,4 +63,5 @@ async def sat_process(
         response.result = SatErrorResponse(result.error_message)
     else:
         raise ValueError(f"Unknown result type: {type(result)}")
+
     return response.to_dict()
