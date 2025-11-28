@@ -2,8 +2,6 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from psp_solver_sdk.sat import sat_solver
-from psp_solver_sdk.queue import QueueMessageProcessor
-import json
 from tests.mocks import mock_process_loop
 
 

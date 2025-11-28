@@ -1,4 +1,4 @@
-from zinc import print_result, solve
+from .minizinc import print_result, solve
 import glob
 
 

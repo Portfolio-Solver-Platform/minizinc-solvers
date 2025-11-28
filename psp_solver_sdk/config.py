@@ -64,7 +64,7 @@ class ApiConfig:
 
 @dataclass
 class SolverConfig:
-    debug: str = _env_field("DEBUG", "false", process=lambda s: s.lower() == "true")
+    debug: bool = _env_field("DEBUG", "false", process=lambda s: s.lower() == "true")
     service: ServiceConfig = field(default_factory=ServiceConfig)
     api: ApiConfig = field(default_factory=ApiConfig)
     cpu: CpuConfig = field(default_factory=CpuConfig)
