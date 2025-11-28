@@ -39,7 +39,9 @@ jobs:
         run: docker run --rm $CI_IMAGE pytest -q -p no:cacheprovider
 
       - name: Audit code
-        run: docker run --rm $CI_IMAGE bandit . -qrx ./tests
+        run: |
+          docker run --rm $CI_IMAGE bandit ./src -qr
+          docker run --rm $CI_IMAGE bandit ./psp_solver_sdk -qr
 
       - name: Dependency audit
         run: docker run --rm $CI_IMAGE pip-audit
