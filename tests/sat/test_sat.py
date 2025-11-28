@@ -28,8 +28,8 @@ async def test_solve(monkeypatch, mock_env):
         json.dumps(d).encode() for d in [solution_input_dict, error_input_dict]
     ]
     file_contents = {
-        "problem_url": load_file("tests/sat/fixtures/problem"),
-        "instance_url": load_file("tests/sat/fixtures/instance"),
+        "problem_url": load_file("tests/sat/fixtures/problem.mzn"),
+        "instance_url": load_file("tests/sat/fixtures/instance.dzn"),
     }
 
     async def solve(request: SatRequest) -> SatSolution | SatError:
