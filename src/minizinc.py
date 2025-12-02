@@ -1,12 +1,16 @@
+from time import sleep
 from psp_solver_sdk.sat import SatSolution, SatError, SatRequest
 from minizinc import Status, Result, Model, Instance, Solver
 from pprint import pprint
+import logging
 
+logger = logging.getLogger(__name__)
 
 async def solve(request: SatRequest) -> SatSolution | SatError:
     """
     Solver examples: coinbc, gecode
     """
+    logger.info(f"solver: {request.solver}")
     try:
         solver = Solver.lookup(request.solver)
     except Exception as e:
@@ -15,8 +19,11 @@ async def solve(request: SatRequest) -> SatSolution | SatError:
         )
         raise e
 
+    logger.info(f"problem: {request.problem}")
+
     print("Loading model")
     model = Model(request.problem)
+    logger.info(f"instance: {request.instance}")
 
     print("Adding instance")
     model.add_file(request.instance)
@@ -26,7 +33,6 @@ async def solve(request: SatRequest) -> SatSolution | SatError:
 
     print("Solving...")
     result = await instance.solve_async(processes=request.vcpus)
-
     if result.status == Status.ERROR:
         return SatError("Failed to solve")
     elif result.status != Status.OPTIMAL_SOLUTION:
