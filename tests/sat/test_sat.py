@@ -34,6 +34,7 @@ async def test_solve(monkeypatch, mock_env):
 
     async def solve(request: SatRequest) -> SatSolution | SatError:
         assert request.vcpus == 1
+        assert request.timeout == 300
         if request.solver == "solution":
             return SatSolution(
                 "my solution", datetime.timedelta(seconds=2, milliseconds=200)
