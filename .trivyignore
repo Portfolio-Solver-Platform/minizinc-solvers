@@ -1,0 +1,6 @@
+# No fix available in upstream Debian
+CVE-2026-0861
+
+# In uv's quinn-proto (QUIC transport, used only during package installation).
+# Fixed in quinn-proto 0.11.14 - remove when uv updates its dependency.
+CVE-2026-31812

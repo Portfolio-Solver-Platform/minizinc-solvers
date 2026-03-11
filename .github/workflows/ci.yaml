@@ -62,4 +62,5 @@ jobs:
           severity: HIGH,CRITICAL
           vuln-type: 'os,library'
           ignore-unfixed: false
+          trivyignores: .trivyignore
           cache-dir: .trivycache
