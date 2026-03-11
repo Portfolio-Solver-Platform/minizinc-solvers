@@ -29,6 +29,7 @@ def _env_field[T](
 @dataclass
 class CpuConfig:
     limit: int = _env_field("CPU_LIMIT", process=int)
+    timeout: int = _env_field("SOLVER_TIMEOUT", process=int)
 
 
 @dataclass

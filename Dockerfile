@@ -44,7 +44,7 @@ COPY --chown=appuser:appuser ./src/ ./src/
 COPY --chown=appuser:appuser ./tests/ ./tests/
 
 EXPOSE 8080
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "-k", "uvicorn.workers.UvicornWorker", "src.main:app"]
+CMD gunicorn --bind 0.0.0.0:8080 --workers 1 -k uvicorn.workers.UvicornWorker src.main:app
 
 # -----------------------------------------------------------
 FROM base AS runtime
@@ -55,4 +55,4 @@ COPY --chown=appuser:appuser ./psp_solver_sdk/ ./psp_solver_sdk/
 COPY --chown=appuser:appuser ./src/ ./src/
 
 EXPOSE 8080
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "-k", "uvicorn.workers.UvicornWorker", "src.main:app"]
+CMD gunicorn --bind 0.0.0.0:8080 --workers 1 -k uvicorn.workers.UvicornWorker src.main:app

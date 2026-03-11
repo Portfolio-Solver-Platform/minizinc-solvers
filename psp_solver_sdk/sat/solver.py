@@ -32,11 +32,13 @@ def sat_solver(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        async def task():
-            await _solve_loop(solve, config)
-
-        asyncio.create_task(task())
+        task = asyncio.create_task(_solve_loop(solve, config))
         yield
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
 
     app = FastAPI(
         debug=config.debug,

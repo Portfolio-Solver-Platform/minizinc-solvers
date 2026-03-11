@@ -1,8 +1,13 @@
 from .config import QueueConfig, QueueAuthConfig
 from typing import Callable, Awaitable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import asyncio
+import signal
 import aio_pika
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 async def get_connection(
@@ -19,10 +24,15 @@ async def get_connection(
 @dataclass
 class QueueMessageProcessor:
     config: QueueConfig
+    _shutdown: asyncio.Event = field(default_factory=asyncio.Event, init=False)
 
     async def process_loop(self, process: Callable[[bytes], Awaitable[bytes]]):
+        loop = asyncio.get_event_loop()
+        loop.add_signal_handler(signal.SIGTERM, self._handle_sigterm)
+
         async with await get_connection(self.config.auth) as connection:
             channel = await connection.channel()
+            await channel.set_qos(prefetch_count=1)
             in_queue = await channel.declare_queue(self.config.in_name, durable=True)
             await channel.declare_queue(self.config.out_name, durable=True)
             exchange = channel.default_exchange
@@ -38,6 +48,9 @@ class QueueMessageProcessor:
                             ),
                             routing_key=self.config.out_name,
                         )
+                    if self._shutdown.is_set():
+                        logger.info("Shutdown requested, exiting after completing current message.")
+                        return
 
     async def json_process_loop(self, process: Callable[[dict], Awaitable[dict]]):
         async def process_bytes(input: bytes) -> bytes:
@@ -46,3 +59,7 @@ class QueueMessageProcessor:
             return json.dumps(out).encode()
 
         return await self.process_loop(process_bytes)
+
+    def _handle_sigterm(self):
+        logger.info("Received SIGTERM, will shut down after current message.")
+        self._shutdown.set()
