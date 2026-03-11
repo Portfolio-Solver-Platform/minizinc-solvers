@@ -8,6 +8,7 @@ class SatRequest:
     problem: str
     instance: str
     vcpus: int
+    timeout: int
 
 
 @dataclass

@@ -46,6 +46,7 @@ async def sat_process(
                     problem_file.name,
                     instance_file.name,
                     config.cpu.limit,
+                    config.cpu.timeout,
                 )
             )
 

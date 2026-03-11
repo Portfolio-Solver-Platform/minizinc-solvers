@@ -54,7 +54,7 @@ jobs:
           restore-keys: ${{ runner.os }}-trivy-
 
       - name: Trivy scan (image)
-        uses: aquasecurity/trivy-action@0.26.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: ${{ env.CI_IMAGE }}
           format: table
@@ -62,4 +62,5 @@ jobs:
           severity: HIGH,CRITICAL
           vuln-type: 'os,library'
           ignore-unfixed: false
+          trivyignores: .trivyignore
           cache-dir: .trivycache

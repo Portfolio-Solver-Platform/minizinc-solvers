@@ -1,4 +1,4 @@
-from time import sleep
+from datetime import timedelta
 from psp_solver_sdk.sat import SatSolution, SatError, SatRequest
 from minizinc import Status, Result, Model, Instance, Solver
 from pprint import pprint
@@ -32,11 +32,11 @@ async def solve(request: SatRequest) -> SatSolution | SatError:
     instance = Instance(solver, model)
 
     print("Solving...")
-    result = await instance.solve_async(processes=request.vcpus)
+    result = await instance.solve_async(processes=request.vcpus, timeout=timedelta(seconds=request.timeout))
     if result.status == Status.ERROR:
         return SatError("Failed to solve")
-    elif result.status != Status.OPTIMAL_SOLUTION:
-        return SatError("Solution is not optimal")
+    elif result.status not in (Status.OPTIMAL_SOLUTION, Status.SATISFIED, Status.ALL_SOLUTIONS):
+        return SatError(f"Solver returned status: {result.status}")
 
     return SatSolution(str(result.solution), result.statistics["solveTime"])
 
