@@ -26,6 +26,7 @@ def sat_client(sat_app):
 def mock_env(monkeypatch):
     values = {
         "CPU_LIMIT": "1",
+        "MEMORY_LIMIT": "4",
         "SOLVER_TIMEOUT": "300",
         "QUEUE_IN_NAME": "inqueue",
         "QUEUE_OUT_NAME": "outqueue",
