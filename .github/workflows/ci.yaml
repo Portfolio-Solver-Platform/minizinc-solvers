@@ -13,4 +13,4 @@ jobs:
 
     uses: Portfolio-Solver-Platform/infrastructure/.github/workflows/python-ci.yaml@wip-update-python-ci
     with:
-      bandit_targets: "./src/ ./psp_solver_sdk/"
+      code_audit_targets: "./src/ ./psp_solver_sdk/"
