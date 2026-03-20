@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 python:3.13-slim AS base
+FROM --platform=linux/amd64 python:3.14-slim@sha256:fb83750094b46fd6b8adaa80f66e2302ecbe45d513f6cece637a841e1025b4ca AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/minizinc/bin:$PATH"
 
 # Install uv (Copy from official image)
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:latest@sha256:72ab0aeb448090480ccabb99fb5f52b0dc3c71923bffb5e2e26517a1c27b7fec /uv /usr/local/bin/uv
 
 # Install MiniZinc
 RUN apt-get update && apt-get install -y --no-install-recommends \
