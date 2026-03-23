@@ -10,6 +10,53 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+RETRY_DELAYS = [5, 30, 60]
+
+
+async def retry_or_dlq(channel, queue_name: str, message: aio_pika.abc.AbstractIncomingMessage, exc: Exception):
+    attempt = int((message.headers or {}).get("x-attempt", 0))
+    headers = {**dict(message.headers or {}), "x-attempt": attempt + 1}
+
+    if attempt < len(RETRY_DELAYS):
+        delay = RETRY_DELAYS[attempt]
+        routing_key = f"{queue_name}.retry.{delay}s"
+        logger.warning(f"Retrying message (attempt {attempt + 1}/{len(RETRY_DELAYS)}, delay {delay}s): {exc}")
+    else:
+        routing_key = f"{queue_name}.dlq"
+        logger.error(f"Message failed after {len(RETRY_DELAYS)} attempts, routing to DLQ: {exc}")
+
+    try:
+        await channel.default_exchange.publish(
+            aio_pika.Message(
+                body=message.body,
+                headers=headers,
+                delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
+            ),
+            routing_key=routing_key,
+        )
+        await message.ack()
+    except Exception:
+        logger.exception("Failed to publish to retry/DLQ, requeueing original message")
+        await message.nack(requeue=True)
+
+
+async def declare_quorum_queue(channel, name: str) -> aio_pika.abc.AbstractQueue:
+    queue = await channel.declare_queue(name, durable=True, arguments={"x-queue-type": "quorum"})
+    for delay in [5, 30, 60]:
+        await channel.declare_queue(
+            f"{name}.retry.{delay}s",
+            durable=True,
+            arguments={
+                "x-queue-type": "quorum",
+                "x-message-ttl": delay * 1000,
+                "x-dead-letter-exchange": "",
+                "x-dead-letter-routing-key": name,
+            },
+        )
+    await channel.declare_queue(f"{name}.dlq", durable=True, arguments={"x-queue-type": "quorum"})
+    return queue
+
+
 async def get_connection(
     auth: QueueAuthConfig,
 ) -> aio_pika.abc.AbstractRobustConnection:
@@ -33,13 +80,13 @@ class QueueMessageProcessor:
         async with await get_connection(self.config.auth) as connection:
             channel = await connection.channel()
             await channel.set_qos(prefetch_count=1)
-            in_queue = await channel.declare_queue(self.config.in_name, durable=True)
-            await channel.declare_queue(self.config.out_name, durable=True)
+            in_queue = await declare_quorum_queue(channel, self.config.in_name)
+            await channel.declare_queue(self.config.out_name, durable=True, arguments={"x-queue-type": "quorum"})
             exchange = channel.default_exchange
 
             async with in_queue.iterator() as queue_iter:
                 async for message in queue_iter:
-                    async with message.process():
+                    try:
                         out_body = await process(message.body)
                         await exchange.publish(
                             aio_pika.Message(
@@ -48,6 +95,9 @@ class QueueMessageProcessor:
                             ),
                             routing_key=self.config.out_name,
                         )
+                        await message.ack()
+                    except Exception as e:
+                        await retry_or_dlq(channel, self.config.in_name, message, e)
                     if self._shutdown.is_set():
                         logger.info("Shutdown requested, exiting after completing current message.")
                         return
