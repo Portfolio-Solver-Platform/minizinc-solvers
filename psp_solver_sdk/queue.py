@@ -40,8 +40,11 @@ async def retry_or_dlq(channel, queue_name: str, message: aio_pika.abc.AbstractI
         await message.nack(requeue=True)
 
 
-async def declare_quorum_queue(channel, name: str) -> aio_pika.abc.AbstractQueue:
-    queue = await channel.declare_queue(name, durable=True, arguments={"x-queue-type": "quorum"})
+async def declare_quorum_queue(channel, name: str, consumer_timeout_s: int | None = None) -> aio_pika.abc.AbstractQueue:
+    arguments = {"x-queue-type": "quorum"}
+    if consumer_timeout_s is not None:
+        arguments["x-consumer-timeout"] = (consumer_timeout_s + 60) * 1000
+    queue = await channel.declare_queue(name, durable=True, arguments=arguments)
     for delay in [5, 30, 60]:
         await channel.declare_queue(
             f"{name}.retry.{delay}s",
@@ -80,7 +83,7 @@ class QueueMessageProcessor:
         async with await get_connection(self.config.auth) as connection:
             channel = await connection.channel()
             await channel.set_qos(prefetch_count=1)
-            in_queue = await declare_quorum_queue(channel, self.config.in_name)
+            in_queue = await declare_quorum_queue(channel, self.config.in_name, self.config.consumer_timeout)
             await channel.declare_queue(self.config.out_name, durable=True, arguments={"x-queue-type": "quorum"})
             exchange = channel.default_exchange
 

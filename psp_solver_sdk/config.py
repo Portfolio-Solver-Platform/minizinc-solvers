@@ -46,6 +46,7 @@ class QueueConfig:
     request_timeout: tuple[int, int] = (1, 5)
     in_name: str = _env_field("QUEUE_IN_NAME")
     out_name: str = _env_field("QUEUE_OUT_NAME")
+    consumer_timeout: int = _env_field("SOLVER_TIMEOUT", process=int)
 
     auth: QueueAuthConfig = field(default_factory=QueueAuthConfig)
 
