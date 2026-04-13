@@ -17,7 +17,7 @@ def load_file(path: str) -> bytes:
 
 
 def mock_get_request_content(mocker, file_contents: dict[str, bytes]):
-    async def mocked_get_request(url: str) -> httpx.Response:
+    async def mocked_get_request(url: str, config) -> httpx.Response:
         if url in file_contents:
             content = file_contents[url]
             return file_response(content)
