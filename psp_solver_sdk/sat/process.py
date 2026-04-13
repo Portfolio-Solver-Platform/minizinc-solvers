@@ -11,7 +11,7 @@ import httpx
 import tempfile
 import time
 
-_token_cache: dict = {"token": None, "expires_at": 0.0}
+_token_cache: dict = {"token": None, "expires_at": 0.0}  # nosec B105
 
 
 async def _get_service_token(config: SolverConfig) -> str:
