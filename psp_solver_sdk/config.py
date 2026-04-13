@@ -68,7 +68,7 @@ class ApiConfig:
 @dataclass
 class KeycloakConfig:
     client_id: str = _env_field("KEYCLOAK_CLIENT_ID", default="")
-    client_secret: str = _env_field("KEYCLOAK_CLIENT_SECRET", default="")
+    client_secret: str = _env_field("KEYCLOAK_CLIENT_SECRET", default="")  # nosec B105
     well_known_url: str = field(default="http://user.psp.svc.cluster.local:8080/v1/internal/.well-known/openid-configuration")
 
 
