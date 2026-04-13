@@ -66,9 +66,17 @@ class ApiConfig:
 
 
 @dataclass
+class KeycloakConfig:
+    client_id: str = _env_field("KEYCLOAK_CLIENT_ID")
+    client_secret: str = _env_field("KEYCLOAK_CLIENT_SECRET")
+    well_known_url: str = field(default="http://user.psp.svc.cluster.local:8080/v1/internal/.well-known/openid-configuration")
+
+
+@dataclass
 class SolverConfig:
     debug: bool = _env_field("DEBUG", "false", process=lambda s: s.lower() == "true")
     service: ServiceConfig = field(default_factory=ServiceConfig)
     api: ApiConfig = field(default_factory=ApiConfig)
     cpu: CpuConfig = field(default_factory=CpuConfig)
     queue: QueueConfig = field(default_factory=QueueConfig)
+    keycloak: KeycloakConfig = field(default_factory=KeycloakConfig)
