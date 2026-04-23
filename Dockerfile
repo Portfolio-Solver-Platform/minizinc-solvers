@@ -1,22 +1,10 @@
-FROM --platform=linux/amd64 python:3.13-slim AS base
+FROM jobork/parasol AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    # Set the path for MiniZinc so the system can find it
-    PATH="/opt/minizinc/bin:$PATH"
+    PYTHONUNBUFFERED=1
 
 # Install uv (Copy from official image)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
-
-# Install MiniZinc
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/* \
-    # Download and install MiniZinc
-    && mkdir -p /opt/minizinc \
-    && curl -L https://github.com/MiniZinc/MiniZincIDE/releases/download/2.9.4/MiniZincIDE-2.9.4-bundle-linux-x86_64.tgz \
-    | tar xz -C /opt/minizinc --strip-components=1
 
 # Create User
 RUN useradd -u 10001 -m appuser
