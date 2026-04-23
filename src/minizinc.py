@@ -6,6 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 async def solve(request: SatRequest) -> SatSolution | SatError:
     """
     Solver examples: coinbc, gecode
@@ -32,10 +33,16 @@ async def solve(request: SatRequest) -> SatSolution | SatError:
     instance = Instance(solver, model)
 
     print("Solving...")
-    result = await instance.solve_async(processes=request.vcpus, timeout=timedelta(seconds=request.timeout))
+    result = await instance.solve_async(
+        processes=request.vcpus, timeout=timedelta(seconds=request.timeout)
+    )
     if result.status == Status.ERROR:
         return SatError("Failed to solve")
-    elif result.status not in (Status.OPTIMAL_SOLUTION, Status.SATISFIED, Status.ALL_SOLUTIONS):
+    elif result.status not in (
+        Status.OPTIMAL_SOLUTION,
+        Status.SATISFIED,
+        Status.ALL_SOLUTIONS,
+    ):
         return SatError(f"Solver returned status: {result.status}")
 
     return SatSolution(str(result.solution), result.statistics["solveTime"])

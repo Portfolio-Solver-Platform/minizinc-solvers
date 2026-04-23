@@ -3,8 +3,7 @@ FROM jobork/parasol AS base
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-# Remove bundled OpenSSL from gecode lib that conflicts with system version
-RUN rm -f /opt/gecode/lib/libcrypto* /opt/gecode/lib/libssl* && ldconfig
+RUN find /opt -name 'libcrypto*' -delete -o -name 'libssl*' -delete && ldconfig
 
 # Install uv (Copy from official image)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
