@@ -41,9 +41,15 @@ async def retry_or_dlq(channel, queue_name: str, message: aio_pika.abc.AbstractI
 
 
 async def declare_quorum_queue(channel, name: str, consumer_timeout_s: int | None = None) -> aio_pika.abc.AbstractQueue:
-    arguments = {"x-queue-type": "quorum"}
+    arguments = {
+        "x-queue-type": "quorum",
+        "x-delivery-limit": 3,
+        "x-dead-letter-exchange": "",
+        "x-dead-letter-routing-key": f"{name}.dlq",
+    }
     if consumer_timeout_s is not None:
         arguments["x-consumer-timeout"] = (consumer_timeout_s + 60) * 1000
+    await channel.declare_queue(f"{name}.dlq", durable=True, arguments={"x-queue-type": "quorum"})
     queue = await channel.declare_queue(name, durable=True, arguments=arguments)
     for delay in [5, 30, 60]:
         await channel.declare_queue(
@@ -56,7 +62,6 @@ async def declare_quorum_queue(channel, name: str, consumer_timeout_s: int | Non
                 "x-dead-letter-routing-key": name,
             },
         )
-    await channel.declare_queue(f"{name}.dlq", durable=True, arguments={"x-queue-type": "quorum"})
     return queue
 
 

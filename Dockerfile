@@ -3,6 +3,7 @@ FROM jobork/parasol AS base
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
+# Remove bundled OpenSSL that conflicts with the system version Python was compiled against
 RUN find /opt -name 'libcrypto*' -delete -o -name 'libssl*' -delete && ldconfig
 
 # Install uv (Copy from official image)
