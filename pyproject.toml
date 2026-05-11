@@ -9,7 +9,7 @@ dependencies = [
     "aio-pika>=9.5.8,<10.0",
     "fastapi[standard]>=0.120.1,<0.121",
     "prometheus-fastapi-instrumentator>=7.1.0,<8.0",
-    "gunicorn>=25.0,<26.0",
+    "gunicorn>=26,<26.1",
     "httpx>=0.28.1,<0.29.0",
     "itsdangerous>=2.2.0,<3.0",
 ]
