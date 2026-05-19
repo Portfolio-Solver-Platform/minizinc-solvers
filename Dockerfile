@@ -1,4 +1,4 @@
-FROM jobork/parasol AS base
+FROM jobork/parasol@sha256:45f793dd283d9044bc21d3c2fb7f0031b81c3def5b273d63a283cc8cbaa2a9df AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN find /opt -name 'libcrypto*' -delete -o -name 'libssl*' -delete && ldconfig
 
 # Install uv (Copy from official image)
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:latest@sha256:e590846f4776907b254ac0f44b5b380347af5d90d668138ca7938d1b0c2f98d3 /uv /usr/local/bin/uv
 
 # Create User
 RUN useradd -u 10001 -m appuser
